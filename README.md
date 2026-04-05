@@ -1,54 +1,108 @@
-# Automated Luxury Underground Parking System
+# Embedded Parking Garage Control System
 
-Ryan Petrauskas and Brandon Mori
+STM32-based embedded systems project implementing secure vehicle access control, automated gate operation, and collision prevention for a scaled parking garage prototype.
 
-# Project Description
-Luxury underground parking in heavily populated urban areas like Manhattan demands enhanced security, convenience, and safety for vehicle owners. Existing parking systems often lack sufficient access control and collision prevention mechanisms, increasing the risk of unauthorized access and potential accidents within parking spaces. This creates a need for a more secure and user-friendly solution that provides peace of mind while ensuring efficient vehicle management.
+## Overview
 
+This project is a modular embedded parking garage control system built on an STM32 Nucleo board using C/C++. The system combines access control, gate automation, user feedback, and collision prevention into a single integrated architecture. It was designed to emphasize clean subsystem separation, maintainability, and real-time embedded behavior.
 
-We propose an automated underground parking system designed to enhance security, safety, and user convenience. The system utilizes an LDR sensor to detect vehicle presence at the entrance gate, which can be unlocked using a matrix keypad for secure code-based access. LED indicators (red and green) inside the parking area guide the driver on when it is safe to enter. At the same time, an ultrasonic distance sensor helps prevent collisions by triggering a buzzer alert when the vehicle is too close to the wall. For a seamless exit, an exit button opens the gate, allowing the driver to back out safely. Additionally, a button inside the parking spot enables the driver to change the matrix keypad code, with updates displayed on the serial monitor for enhanced security control.
+The prototype simulates a secure underground parking setup. A vehicle is detected at the entrance, a user enters an access code through a keypad, and the system opens the gate if authentication succeeds. LED indicators communicate entry status, and an ultrasonic sensor monitors the vehicle’s position to reduce collision risk while parking.
 
+## Key Features
 
-# System Components  
+- Vehicle detection at the entrance using an LDR sensor
+- Secure keypad-based access control with multiple attempt handling
+- Automated gate actuation using a servo motor
+- Red/green LED status signaling for gate movement and safe entry
+- Ultrasonic collision detection with buzzer alerting
+- Exit button for controlled departure
+- Reset button for updating the access code
+- USB serial communication for debugging and monitoring
+- Modular software architecture with subsystem-based organization
 
-| Component                     | Description                                                         |
-|-------------------------------|---------------------------------------------------------------------|
-| **Microcontroller**           | STM32 Nucleo – the core controller for the system              |
-| **Matrix Keypad**             | Used for secure code-based entry                               |
-| **LDR Sensor**                | Detects vehicle presence at the entrance and parking spot      |
-| **Ultrasonic Sensor**         | Measures distance to prevent collisions                          |
-| **2x Buzzer**                 | One for collision warning, one for security alert               |
-| **Indicator LEDs**            | Blue LED to show engine on and Green LED to show ignition enabled   |
-| **2x LED**                    | Red LED indicates gate movement; Green LED signals safe entry         |
-| **LCD Display**               | Displays system messages |
-| **Positional Servo**          | Controls gate movement by lifting and lowering it                      |
+## System Behavior
 
-# Success Cases
+The system follows this operating flow:
 
-| Pass Case                          | Description                                                   | Expected Behavior                                              | Status |
-|-------------------------------------|---------------------------------------------------------------|----------------------------------------------------------------|--------|
-| **Correct Code Entered**            | The user enters the correct code within 3 attempts.            | The gate opens, and the system displays "Welcome!" before closing the gate after 5 seconds. | Pass   |
-| **Car Detected with Correct Code** | A car is detected at the entrance, and the correct code is entered within the allowed attempts. | The system grants access, opens the gate, and displays a welcome message. | Pass   |
-| **Multiple Incorrect Attempts (3)** | The user enters 3 incorrect codes.                            | After 3 failed attempts, the system triggers a security issue, activates the alarm, and displays "ALARM ACTIVATED!". | Pass   |
-| **Successful Gate Operation**      | After entering the correct code, the gate opens and closes as expected. | The gate opens for 5 seconds and then closes. While opening or closing, redLed should be on. While gate is open, greenLed should be on                 | Pass   |
-| **Display Updates Correctly**      | The display shows the correct information during each attempt. | The system displays "3 10sec Attempts", the attempt number, and correct status messages ("Welcome!" or "ALARM ACTIVATED!"). | Pass   |
-| **Siren Activated After 3 Failures** | After 3 incorrect attempts, the siren activates.              | The siren should be turned on, and the system should display "3 WRONG ATTEMPTS" and "ALARM ACTIVATED!". | Pass   |
+1. A vehicle is detected at the entrance.
+2. The driver is prompted to enter an access code.
+3. If the code is correct, the gate opens and the system signals safe entry.
+4. While parking, the ultrasonic sensor monitors distance to the wall.
+5. If the vehicle gets too close, the collision alert is triggered.
+6. The driver can exit using the exit button.
+7. After repeated incorrect code attempts, the system activates a security alarm.
 
-| **Car Detected and System Activated** | The system detects a car at the entrance and activates the entrance subsystem. | The entrance system is activated and ready to receive code input. | Pass   |
-| **Attempt Number Displayed Correctly** | Each attempt number is displayed correctly on the screen.      | The display shows the current attempt number in the format "Attempt X". | Pass   |
+## Hardware
 
+The prototype integrates the following components:
 
+- STM32 Nucleo microcontroller
+- Matrix keypad
+- LDR sensor
+- Ultrasonic sensor
+- Positional servo motor
+- LCD display
+- Red and green LEDs
+- Buzzers
+- Exit button
+- Reset button
 
-# Fail Cases/Trouble Shooting  
+The hardware architecture includes a mix of analog, digital, and PWM-connected devices. The project also includes a block diagram and full schematic for signal flow and wiring layout.
 
-| Fail Case                         | Description                                                   | Solution                                                       |
-|------------------------------------|---------------------------------------------------------------|---------------------------------------------------------------|
-| **Wrong Code Entered**             | The user enters an incorrect code for access.                 | The system allows 3 attempts before triggering a security issue. |
-| **Security Issue Triggered**      | After 3 incorrect attempts, a security issue is flagged.      | An alarm is triggered (external siren is activated) and the display shows "ALARM ACTIVATED!" |
-| **Car Not Detected**              | The system fails to detect the car at the entrance.            | Ensure proper sensor functionality and that the car is within detection range. |
-| **Gate Fails to Open**             | The gate fails to open after the correct code is entered.     | Verify motor functions and ensure gate opening command (`openGate()`) is being executed correctly. |
-| **Display Failure**                | The display shows incorrect or no message during operation.   | Check the display wiring and ensure correct positioning in the `displayCharPositionWrite` and `displayStringWrite` calls. |
-| **Code Check Failure**             | The code check (`isCodeCorrect()`) fails but should succeed.  | Debug the `isCodeCorrect()` function for issues with code validation. |
-| **Timing Issues**                  | The timing for 10 seconds for attempts might be incorrect.    | Ensure the delay functions and timing conditions are set correctly for each attempt. |
-| **Siren Not Triggered**            | The external siren doesn't activate after failed attempts.    | Check the siren control logic (`externalSirenStateWrite(ON)`) and the `sirensUpdate()` function. |
-| **Incorrect Sensor Update**        | The sensors fail to update correctly after the 3 failed attempts. | Ensure that the `sensorUpdate()` function works properly and is called the expected number of times (10). |
+## Software Architecture
+
+The software was structured modularly so that each subsystem had a distinct responsibility. The main parking system controller handles initialization and periodic updates, while supporting modules manage tasks such as gate control, collision detection, keypad input, display logic, entry/exit handling, alarms, and serial communication.
+
+### Core modules include:
+- `main.cpp`
+- `parking_system.cpp`
+- `entrance_subsystem.cpp`
+- `exit_subsystem.cpp`
+- `move_gate.cpp`
+- `collision_sensor.cpp`
+- `matrix_keypad.cpp`
+- `display.cpp`
+- `code.cpp`
+- `pc_serial_com.cpp`
+
+The system runs on a real-time update cycle of 10 ms to support responsive behavior across subsystems.
+
+## Testing and Results
+
+The system successfully demonstrated the core intended functionality, including:
+
+- accurate vehicle detection
+- correct keypad authentication flow
+- proper gate opening and closing behavior
+- security alarm activation after repeated failed attempts
+- ultrasonic collision alerting
+- exit button operation
+- code reset functionality via serial interface
+
+One known limitation remained in the gate safety mechanism: the system did not fully prevent gate closure when an obstruction was present, indicating a need for further refinement.
+
+## Engineering Focus
+
+A major emphasis of this project was code maintainability. The software was designed with modularity, readable structure, and configurable constants so that debugging, extension, and subsystem-level changes could be made without destabilizing the entire system.
+
+## Challenges
+
+During integration, some modules interfered with others in unexpected ways, especially when combining servo control, LEDs, the buzzer, and the LCD display. Resolving these issues required repeated debugging, incremental testing, and re-establishing stable intermediate versions of the project.
+
+## Future Improvements
+
+Planned improvements include:
+
+- adding RFID-based authentication for stronger access control
+- implementing better obstruction detection during gate closure
+- improving safety behavior for more realistic deployment scenarios
+
+## Media
+
+- [Project Demo Video](https://drive.google.com/file/d/1EKjXtH5NMyKs-ejD6vYEh3f0iMNzC9Y5/view)
+- [Technical Report](./Embedded_Parking_Garage_Control_System_Technical_Report.pdf)
+
+## Contributors
+
+- Ryan Petrauskas
+- Brandon Mori
